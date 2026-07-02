@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=News+Cycle:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ── PIL Communication Color System ── */
+  /* Primary: pure white/black with opacity variants */
+  --color-pil-white: #ffffff;
+  --color-pil-black: #000000;
+  --color-pil-red: #ff3333;
+
+  /* Surface & Background */
+  --color-bg-paper: #ffffff;
+  --color-surface-card: #ffffff;
+  --color-surface-alt: rgba(0, 0, 0, 0.02);
+  --color-surface-hover: rgba(0, 0, 0, 0.03);
+
+  /* Ink / Text */
+  --color-ink-primary: #000000;
+  --color-ink-secondary: rgba(0, 0, 0, 0.60);
+  --color-muted-text: rgba(0, 0, 0, 0.40);
+
+  /* Borders — PIL uses black at very low opacity */
+  --color-border-warm: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+
+  /* Accent — PIL signature red */
+  --color-accent-red: #ff3333;
+
+  /* Audit-specific accents (kept for domain context) */
+  --color-gold-accent: #C49A20;
+  --color-gold-light: #FBF6E8;
+
+  --color-success-green: #296040;
+  --color-success-light: #E6F1EB;
+
+  --color-amber-warning: #9B7510;
+  --color-amber-light: #FBF5DE;
+
+  --color-error-red: #cc2200;
+  --color-error-light: #FAF0EE;
+
+  --color-loading-dark: #000000;
+
+  /* Font Families */
+  --font-display-bebas: "Bebas Neue", sans-serif;
+  --font-sans-news: "News Cycle", sans-serif;
+}
+
+/* ── Base Layer ── */
+@layer base {
+  html, body {
+    background-color: var(--color-bg-paper);
+    color: var(--color-ink-primary);
+    font-family: var(--font-sans-news);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+    overflow-x: clip;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display-bebas);
+    color: var(--color-ink-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    line-height: 0.95;
+    font-synthesis: none;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input, textarea, select {
+    font-family: var(--font-sans-news);
+    font-size: 14px;
+    letter-spacing: inherit;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+}
+
+/* ── Utility Layer ── */
+@layer utilities {
+  /* Borders — PIL style ultra-subtle black-alpha */
+  .border-thin {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .border-thin-b {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .border-thin-t {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .border-thin-l {
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .border-thin-r {
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  /* Font utilities */
+  .font-news {
+    font-family: var(--font-sans-news);
+  }
+  .font-bebas {
+    font-family: var(--font-display-bebas);
+    font-weight: 700;
+    font-synthesis: none;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* PIL exact display class */
+  .bebas-display {
+    font-synthesis: none;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 700;
+  }
+
+  /* PIL hero headline font */
+  .hero-headline-font {
+    font-synthesis: weight;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 700;
+  }
+}
+
+/* ── PIL Animation Keyframes ── */
+
+/* Entrance: fade up from 10px below */
+@keyframes ui-enter-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero title: zoom from 0.94 scale */
+@keyframes hero-title-zoom-fade {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Marquee left scroll */
+@keyframes marquee-left {
+  0% { transform: translate(0); }
+  to { transform: translate(-50%); }
+}
+
+/* Live pulse dot */
+@keyframes pil-live-pulse {
+  0%, 49.999% { opacity: 1; }
+  50%, to { opacity: 0; }
+}
+
+/* Legacy compat */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── PIL Animation Classes ── */
+
+/* Staggered entrance — use --enter-delay CSS var per element */
+.ui-enter-stagger {
+  opacity: 0;
+  animation: 0.48s cubic-bezier(0.2, 0.8, 0.2, 1) forwards ui-enter-up-fade;
+  animation-delay: var(--enter-delay, 0s);
+}
+
+/* Hero title zoom entrance */
+.hero-title-enter {
+  opacity: 0;
+  transform-origin: 50%;
+  animation: 0.62s cubic-bezier(0.18, 0.9, 0.2, 1) forwards hero-title-zoom-fade;
+  animation-delay: var(--enter-delay, 0s);
+}
+
+/* Section fade-in on scroll (controlled via IntersectionObserver adding .is-visible) */
+.section-fade-in {
+  opacity: 0;
+  transition: opacity 0.7s ease-out;
+  transition-delay: var(--fade-delay, 0s);
+}
+.section-fade-in.is-visible {
+  opacity: 1;
+}
+
+/* Legacy animation class */
+.animate-fadeInUp {
+  animation: ui-enter-up-fade 0.48s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Card hover lift (PIL-style scale) */
+.card-hover-lift {
+  transition: transform 0.28s cubic-bezier(0.2, 0.85, 0.25, 1), box-shadow 0.28s ease;
+}
+.card-hover-lift:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Client logo hover scale */
+.logo-hover-scale {
+  transform-origin: 50%;
+  transition: transform 0.28s cubic-bezier(0.2, 0.85, 0.25, 1);
+  transform: scale(1);
+}
+.logo-hover-scale:hover {
+  transform: scale(1.08);
+}
+
+/* Live dot pulse */
+.live-dot-pulse {
+  transform-origin: 50%;
+  animation: 2s step-end infinite pil-live-pulse;
+}
+
+/* ── Reduced Motion Support ── */
+@media (prefers-reduced-motion: reduce) {
+  .ui-enter-stagger,
+  .hero-title-enter,
+  .section-fade-in,
+  .animate-fadeInUp {
+    opacity: 1 !important;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .card-hover-lift {
+    transition: none !important;
+  }
+  .card-hover-lift:hover {
+    transform: none !important;
+  }
+}
+
+/* ── Scrollbar — clean PIL style ── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.30);
+}
+
+/* ── Selection — PIL red accent ── */
+::selection {
+  background-color: rgba(255, 51, 51, 0.12);
+  color: #000;
+}
