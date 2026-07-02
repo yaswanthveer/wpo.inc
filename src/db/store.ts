@@ -138,9 +138,9 @@ export const useAppStore = create<AppState>()(
       currentUser: null,
       currentFirm: null,
       supabaseSettings: {
-        supabaseUrl: '',
-        supabaseAnonKey: '',
-        isEnabled: false,
+        supabaseUrl: 'https://wksjvrljuqoclspzdrrs.supabase.co',
+        supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indrc2p2cmxqdXFvY2xzcHpkcnJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NjczMzksImV4cCI6MjA5ODU0MzMzOX0.Fk5p6M_HC_iqZBlXjmsz2ibmu6J_Qx8PRpPB0ndBSVI',
+        isEnabled: true,
       },
 
       onboardFirm: (firmData, partnerName, partnerEmail) => {
