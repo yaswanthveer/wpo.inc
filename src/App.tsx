@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './db/store';
 import { LoadingScreen } from './screens/LoadingScreen';
@@ -27,6 +27,25 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function App() {
+  const { supabaseSettings, syncFromSupabase } = useAppStore();
+
+  useEffect(() => {
+    if (supabaseSettings.isEnabled) {
+      console.log('Supabase Cloud Sync Active: Performing initial pull...');
+      syncFromSupabase()
+        .then(res => {
+          if (res.success) {
+            console.log('Supabase Cloud Sync Complete: Local database loaded from cloud.');
+          } else {
+            console.warn('Supabase Cloud Sync Warning:', res.error);
+          }
+        })
+        .catch(err => {
+          console.error('Supabase Cloud Sync Fatal:', err);
+        });
+    }
+  }, [supabaseSettings.isEnabled, syncFromSupabase]);
+
   return (
     <BrowserRouter>
       <Routes>

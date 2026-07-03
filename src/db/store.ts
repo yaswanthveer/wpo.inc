@@ -7,6 +7,7 @@ import type {
   ReviewNote, SubmissionLock, EngagementArchive, PostLockdownAddendum,
   TrashBinItem
 } from './schema';
+import { getSupabaseClient } from '../utils/supabaseClient';
 
 interface AppState {
   // Tables
@@ -27,6 +28,7 @@ interface AppState {
   reviewNotes: ReviewNote[];
   postLockdownAddenda: PostLockdownAddendum[];
   trashBin: TrashBinItem[];
+  isSyncing: boolean;
   
   // App Config & Session
   currentUser: User | null;
@@ -98,6 +100,10 @@ interface AppState {
   setAuditReportDate: (engagementId: string, date: string) => { success: boolean; error?: string };
   addPostLockdownAddendum: (engagementId: string, data: { reason: string; content: string }) => void;
   checkAndApplyArchiveLock: (engagementId: string) => void;
+
+  // Supabase Cloud Synchronisation Actions
+  syncFromSupabase: () => Promise<{ success: boolean; error?: string }>;
+  syncToSupabase: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const DEFAULT_AREAS = [
@@ -117,8 +123,22 @@ const DEFAULT_AREAS = [
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
-      firms: [],
+    (originalSet, get) => {
+      const set = (
+        partial: AppState | Partial<AppState> | ((state: AppState) => AppState | Partial<AppState>),
+        replace?: boolean
+      ) => {
+        originalSet(partial as any, replace as any);
+        const state = get();
+        if (state.supabaseSettings?.isEnabled && !state.isSyncing) {
+          state.syncToSupabase().catch(err => {
+            console.error('Auto-replicate write to Supabase failed:', err);
+          });
+        }
+      };
+
+      return {
+        firms: [],
       users: [],
       clients: [],
       engagements: [],
@@ -134,6 +154,7 @@ export const useAppStore = create<AppState>()(
       reviewNotes: [],
       postLockdownAddenda: [],
       trashBin: [],
+      isSyncing: false,
       
       currentUser: null,
       currentFirm: null,
@@ -1197,10 +1218,128 @@ export const useAppStore = create<AppState>()(
           }));
           get().addAuditTrail('archive_hard_locked_system', {}, undefined, engagementId);
         }
+      },
+
+      syncFromSupabase: async () => {
+        const supabase = getSupabaseClient();
+        if (!supabase) {
+          return { success: false, error: 'Supabase client is not initialized or is disabled.' };
+        }
+
+        try {
+          // Perform sequential selects for all tables
+          const [
+            fRes, uRes, cRes, eRes, aaRes, wpRes, dRes, pRes, atRes, crRes, ptRes, oRes, rnRes, plaRes, tbRes
+          ] = await Promise.all([
+            supabase.from('firms').select('*'),
+            supabase.from('users').select('*'),
+            supabase.from('clients').select('*'),
+            supabase.from('engagements').select('*'),
+            supabase.from('audit_areas').select('*'),
+            supabase.from('working_papers').select('*'),
+            supabase.from('documents').select('*'),
+            supabase.from('procedures').select('*'),
+            supabase.from('audit_trails').select('*'),
+            supabase.from('client_requests').select('*'),
+            supabase.from('client_portal_tokens').select('*'),
+            supabase.from('observations').select('*'),
+            supabase.from('review_notes').select('*'),
+            supabase.from('post_lockdown_addenda').select('*'),
+            supabase.from('trash_bin_items').select('*')
+          ]);
+
+          // Check if any request failed
+          const errors = [
+            fRes, uRes, cRes, eRes, aaRes, wpRes, dRes, pRes, atRes, crRes, ptRes, oRes, rnRes, plaRes, tbRes
+          ].filter(r => r.error);
+
+          if (errors.length > 0) {
+            console.error('Error fetching one or more tables from Supabase:', errors);
+            return { success: false, error: errors[0].error?.message || 'Error syncing database.' };
+          }
+
+          // Update Zustand store state
+          set({
+            firms: fRes.data || [],
+            users: uRes.data || [],
+            clients: cRes.data || [],
+            engagements: eRes.data || [],
+            auditAreas: aaRes.data || [],
+            workingPapers: wpRes.data || [],
+            documents: dRes.data || [],
+            procedures: pRes.data || [],
+            auditTrail: atRes.data || [],
+            clientRequests: crRes.data || [],
+            clientPortalTokens: ptRes.data || [],
+            observations: oRes.data || [],
+            reviewNotes: rnRes.data || [],
+            postLockdownAddenda: plaRes.data || [],
+            trashBin: tbRes.data || [],
+          });
+
+          // Maintain active session context if users exist
+          const currentUid = get().currentUser?.id;
+          if (currentUid) {
+            const freshUser = (uRes.data || []).find((u: any) => u.id === currentUid);
+            const freshFirm = (fRes.data || []).find((f: any) => f.id === freshUser?.firm_id);
+            if (freshUser && freshFirm) {
+              set({ currentUser: freshUser, currentFirm: freshFirm });
+            }
+          }
+
+          return { success: true };
+        } catch (error: any) {
+          console.error('Error executing syncFromSupabase:', error);
+          return { success: false, error: error.message || 'Fatal error during cloud sync.' };
+        }
+      },
+
+      syncToSupabase: async () => {
+        const supabase = getSupabaseClient();
+        if (!supabase) {
+          return { success: false, error: 'Supabase client is not initialized or is disabled.' };
+        }
+
+        try {
+          const state = get();
+          
+          // Helper to execute upsert operations
+          const upserts = [
+            state.firms.length > 0 ? supabase.from('firms').upsert(state.firms) : Promise.resolve({ error: null }),
+            state.users.length > 0 ? supabase.from('users').upsert(state.users) : Promise.resolve({ error: null }),
+            state.clients.length > 0 ? supabase.from('clients').upsert(state.clients) : Promise.resolve({ error: null }),
+            state.engagements.length > 0 ? supabase.from('engagements').upsert(state.engagements) : Promise.resolve({ error: null }),
+            state.auditAreas.length > 0 ? supabase.from('audit_areas').upsert(state.auditAreas) : Promise.resolve({ error: null }),
+            state.workingPapers.length > 0 ? supabase.from('working_papers').upsert(state.workingPapers) : Promise.resolve({ error: null }),
+            state.documents.length > 0 ? supabase.from('documents').upsert(state.documents) : Promise.resolve({ error: null }),
+            state.procedures.length > 0 ? supabase.from('procedures').upsert(state.procedures) : Promise.resolve({ error: null }),
+            state.auditTrail.length > 0 ? supabase.from('audit_trails').upsert(state.auditTrail) : Promise.resolve({ error: null }),
+            state.clientRequests.length > 0 ? supabase.from('client_requests').upsert(state.clientRequests) : Promise.resolve({ error: null }),
+            state.clientPortalTokens.length > 0 ? supabase.from('client_portal_tokens').upsert(state.clientPortalTokens) : Promise.resolve({ error: null }),
+            state.observations.length > 0 ? supabase.from('observations').upsert(state.observations) : Promise.resolve({ error: null }),
+            state.reviewNotes.length > 0 ? supabase.from('review_notes').upsert(state.reviewNotes) : Promise.resolve({ error: null }),
+            state.postLockdownAddenda.length > 0 ? supabase.from('post_lockdown_addenda').upsert(state.postLockdownAddenda) : Promise.resolve({ error: null }),
+            state.trashBin.length > 0 ? supabase.from('trash_bin_items').upsert(state.trashBin) : Promise.resolve({ error: null }),
+          ];
+
+          const results = await Promise.all(upserts);
+          const errors = results.filter(r => r.error);
+
+          if (errors.length > 0) {
+            console.error('Error writing one or more tables to Supabase:', errors);
+            return { success: false, error: errors[0].error?.message || 'Error writing state to database.' };
+          }
+
+          return { success: true };
+        } catch (error: any) {
+          console.error('Error executing syncToSupabase:', error);
+          return { success: false, error: error.message || 'Fatal error during cloud push.' };
+        }
       }
-    }),
-    {
-      name: 'wpo-inc-storage',
-    }
-  )
+    };
+  },
+  {
+    name: 'wpo-inc-storage',
+  }
+)
 );
