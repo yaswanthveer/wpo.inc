@@ -101,18 +101,18 @@ interface AppState {
 }
 
 const DEFAULT_AREAS = [
-  { code: 'GEN', name: 'General Information and Entity Understanding' },
-  { code: 'RSK', name: 'Risk Assessment and Audit Planning' },
-  { code: 'CAN', name: 'Cash and Bank Balances' },
-  { code: 'TRE', name: 'Trade Receivables' },
-  { code: 'INV', name: 'Inventories' },
   { code: 'REV', name: 'Revenue from Operations' },
-  { code: 'PPE', name: 'Property, Plant and Equipment' },
-  { code: 'LAD', name: 'Loans and Advances' },
-  { code: 'EMP', name: 'Employee Benefits and Expenses' },
-  { code: 'TAX', name: 'Taxes, Duties and Provisions' },
-  { code: 'RPT', name: 'Related Party Transactions' },
-  { code: 'CLO', name: 'Closing, Review and Sign-off' },
+  { code: 'TRC', name: 'Trade Receivables' },
+  { code: 'PDE', name: 'Purchases & Direct Expenses' },
+  { code: 'TPC', name: 'Trade Payables & Creditors' },
+  { code: 'PPE', name: 'Property, Plant and Equipment (PPE)' },
+  { code: 'INV', name: 'Inventory Valuation & Physical Count' },
+  { code: 'CAN', name: 'Cash and Bank Balances' },
+  { code: 'LAB', name: 'Loans, Advances & Borrowings' },
+  { code: 'EMP', name: 'Employee Benefit Expenses (Payroll)' },
+  { code: 'PCE', name: 'Other Provisions, Contingent Liabilities & Equity' },
+  { code: 'STX', name: 'Statutory Dues, GST & Direct Tax Compliances' },
+  { code: 'MIS', name: 'Other Miscellaneous Income & Expenses' },
 ];
 
 export const useAppStore = create<AppState>()(
@@ -285,7 +285,7 @@ export const useAppStore = create<AppState>()(
           let title = `${area.name} Working Paper`;
           let objective = `To obtain reasonable assurance that the balances and disclosures in respect of ${area.name} are free from material misstatements and conform to applicable auditing guidelines.`;
           
-          if (area.code === 'TRE') {
+          if (area.code === 'TRC') {
             title = 'Trade Receivables Audit Documentation';
             objective = 'To verify the existence, ownership, completeness, valuation, and presentation of Trade Receivables as at the balance sheet date, including checking MSME compliance.';
           } else if (area.code === 'CAN') {
@@ -300,7 +300,7 @@ export const useAppStore = create<AppState>()(
             reference_code: `WP-${area.code}-001`,
             title,
             objective,
-            observations: area.code === 'TRE' 
+            observations: area.code === 'TRC' 
               ? 'Preliminary review of receivables ledger shows standard credit cycles (30-60 days) for key institutional clients. Total debtor balances under review amount to ₹4.8 Crores. We have circularized confirmation letters for the top 15 debtors, representing 72% of the overall balance.'
               : `Review of ${area.name} is initiated. Default templates loaded.`,
             conclusion: undefined,
@@ -311,14 +311,14 @@ export const useAppStore = create<AppState>()(
           });
 
           // Add default documents and procedures
-          if (area.code === 'TRE') {
+          if (area.code === 'TRC') {
             const docsData = [
-              { name: 'Trade Receivables Ledger', ref: 'TRE/D/01' },
-              { name: 'Ageing Analysis as at year-end', ref: 'TRE/D/02' },
-              { name: 'Debtor Confirmation Letters / Circularisation', ref: 'TRE/D/03' },
-              { name: 'Subsequent Collection Evidence', ref: 'TRE/D/04' },
-              { name: 'Board Approval for Provision', ref: 'TRE/D/05' },
-              { name: 'Bad Debt Write-off Approvals', ref: 'TRE/D/06' },
+              { name: 'Trade Receivables Ledger', ref: 'TRC/D/01' },
+              { name: 'Ageing Analysis as at year-end', ref: 'TRC/D/02' },
+              { name: 'Debtor Confirmation Letters / Circularisation', ref: 'TRC/D/03' },
+              { name: 'Subsequent Collection Evidence', ref: 'TRC/D/04' },
+              { name: 'Board Approval for Provision', ref: 'TRC/D/05' },
+              { name: 'Bad Debt Write-off Approvals', ref: 'TRC/D/06' },
             ];
             docsData.forEach(d => {
               newDocs.push({

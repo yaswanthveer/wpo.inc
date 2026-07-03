@@ -66,7 +66,7 @@ export interface Engagement {
 export interface AuditArea {
   id: string;
   engagement_id: string;
-  code: string; // 'GEN', 'RSK', 'CAN', 'TRE', 'INV', 'REV', 'PPE', 'LAD', 'EMP', 'TAX', 'RPT', 'CLO'
+  code: string; // 'REV', 'TRC', 'PDE', 'TPC', 'PPE', 'INV', 'CAN', 'LAB', 'EMP', 'PCE', 'STX', 'MIS'
   name: string;
   status: 'pending' | 'in-progress' | 'review' | 'complete';
   completion_pct: number;

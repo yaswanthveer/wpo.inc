@@ -287,13 +287,33 @@ export const EngagementDetail: React.FC = () => {
           </button>
 
           {isPlanningFinalized && (
-            <button
-              onClick={() => setIsInjectOpen(true)}
-              className="flex items-center gap-1 bg-black text-white px-4 py-2 rounded-[2px] text-[11px] font-bold tracking-[0.04em] uppercase hover:bg-black/90 transition-colors duration-200 cursor-pointer"
-            >
-              <Plus size={12} />
-              <span>Inject Custom Tab</span>
-            </button>
+            <>
+              <button
+                onClick={() => setIsInjectOpen(true)}
+                className="flex items-center gap-1 bg-black text-white px-4 py-2 rounded-[2px] text-[11px] font-bold tracking-[0.04em] uppercase hover:bg-black/90 transition-colors duration-200 cursor-pointer"
+              >
+                <Plus size={12} />
+                <span>Inject Custom Tab</span>
+              </button>
+              <button
+                onClick={() => {
+                  const assigned = areas.filter(a => a.assignee_id);
+                  if (assigned.length === 0) {
+                    alert('Please assign at least one assistant to an audit area before publishing the audit program.');
+                    return;
+                  }
+                  const assignedNames = assigned.map(a => {
+                    const u = users.find(usr => usr.id === a.assignee_id);
+                    return `• ${a.name} → ${u?.full_name || 'Unknown'}`;
+                  }).join('\n');
+                  alert(`Audit Program Published Successfully!\n\nSimulated email notifications dispatched to the following assigned assistants with secure access links:\n\n${assignedNames}\n\nTotal areas assigned: ${assigned.length} / ${areas.length}`);
+                }}
+                className="flex items-center gap-1 border-2 border-emerald-600 text-emerald-700 bg-emerald-50 px-4 py-2 rounded-[2px] text-[11px] font-bold tracking-[0.04em] uppercase hover:bg-emerald-100 transition-colors duration-200 cursor-pointer"
+              >
+                <ShieldCheck size={12} />
+                <span>Publish Audit Program</span>
+              </button>
+            </>
           )}
         </div>
       </div>
